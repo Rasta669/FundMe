@@ -10,28 +10,30 @@ from scripts.helpful_scripts import (
 ##setting the address and whether to publish the contract or not, as pulled from the brownie-config
 def deploy_fundme():
     account = get_account()
-    if network.show_active() not in LOCAL_DEVELOPMENT_NETWORKS:
-        priceFeedAddress = config["networks"][network.show_active()][
-            "eth_usdt_price_feed"
-        ]
-        fund_me = FundMe.deploy(
-            priceFeedAddress,
-            {"from": account},
-            publish_source=config["networks"][network.show_active()].get("verify"),
-        )
-        print(f"Contract deployed at {fund_me.address}")
-        return fund_me
+    if len(FundMe) > 0:
+        fund_me = FundMe[-1]
     else:
-        if len(MockV3Aggregator) <= 0:
-            deploy_mocks()
-        priceFeedAddress = MockV3Aggregator[-1]
-        fund_me = FundMe.deploy(
-            priceFeedAddress,
-            {"from": account},
-            publish_source=config["networks"][network.show_active()].get("verify"),
-        )
-        print(f"Contract deployed at {fund_me.address}")
-        return fund_me
+        if network.show_active() not in LOCAL_DEVELOPMENT_NETWORKS:
+            priceFeedAddress = config["networks"][network.show_active()][
+                "eth_usdt_price_feed"
+            ]
+            fund_me = FundMe.deploy(
+                priceFeedAddress,
+                {"from": account},
+                publish_source=config["networks"][network.show_active()].get("verify"),
+            )
+            print(f"Contract deployed at {fund_me.address}")
+        else:
+            if len(MockV3Aggregator) <= 0:
+                deploy_mocks()
+            priceFeedAddress = MockV3Aggregator[-1]
+            fund_me = FundMe.deploy(
+                priceFeedAddress,
+                {"from": account},
+                publish_source=config["networks"][network.show_active()].get("verify"),
+            )
+            print(f"Contract deployed at {fund_me.address}")
+    return (fund_me, account)
 
 
 ##main brownie method

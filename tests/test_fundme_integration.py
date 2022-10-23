@@ -5,9 +5,10 @@ import pytest
 
 
 def test_can_deposit_and_withdraw():
-    fund_me = deploy_fundme()
+    if network.show_active() in LOCAL_DEVELOPMENT_NETWORKS:
+        pytest.skip("Only for local testing")
+    (fund_me, account) = deploy_fundme()
     entry_fee = fund_me.getEntranceFee()
-    account = get_account()
     tx = fund_me.fund({"from": account, "value": entry_fee})
     tx.wait(1)
     assert fund_me.addressToAmountFunded(account) == entry_fee
@@ -19,9 +20,9 @@ def test_can_deposit_and_withdraw():
 ##Using pytest to demonstrate how to skip a certain test aimed only for local testing
 ##also using pytest to pass a certain test when an exception or error is raised as expected.
 def test_only_owner():
-    if network.show_active() not in LOCAL_DEVELOPMENT_NETWORKS:
+    if network.show_active() in LOCAL_DEVELOPMENT_NETWORKS:
         pytest.skip("Only for local testing")
-    fund_me = deploy_fundme()
-    bad_actor = accounts.add()
-    with pytest.raises(exceptions.VirtualMachineError):
+    (fund_me, account) = deploy_fundme()
+    bad_actor = accounts.load("rastaBujo")
+    with pytest.raises(ValueError):
         fund_me.withdraw({"from": bad_actor})
